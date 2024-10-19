@@ -1,22 +1,24 @@
 const express = require('express');
+const cors = require('cors');
 const pool = require('./db');
-const loginRouter = require('./routes/login'); 
+const authRoutes = require('./routes/auth');
+require('dotenv').config(); 
 
 const app = express();
-app.use(express.json()); 
-app.use('/api', loginRouter); 
+const port = process.env.PORT || 3000;
 
+app.use(cors());
+app.use(express.json());
 
+app.use('/api', authRoutes); 
 
 pool.connect()
-    .then(()=>{
+    .then(() => {
         console.log(`Database connected successfully`);
-        const PORT = process.env.PORT || 3000;
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+        app.listen(port, () => {
+            console.log(`Server is running on port ${port}`);
         });
-
     })
-    .catch(err =>{
-        console.error('Database connection error: ', error);
-    })
+    .catch(err => {
+        console.error('Database connection error: ', err);
+    });
