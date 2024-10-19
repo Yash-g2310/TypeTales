@@ -23,7 +23,25 @@ router.use(express.json());
 
 
 
+//DB STRUCTURE 
+//       USERS
+//          |--- USERNAME
+//          |--- EMAIL ID 
+///         |--- PASSWORD
 
+
+
+//       PROFILE
+//          |-- USERNAME
+//          |-- EMAIL ID 
+//          |-- WPM 
+//          |-- TASKS DONE 
+
+
+
+//      TASKS
+//          |-- TIME TAKEN
+//          |-- NO. OF WORDS 
 
 
 
