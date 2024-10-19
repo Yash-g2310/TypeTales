@@ -1,27 +1,27 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 const HighlightedText = ({ textToType = '', userInput = '' }) => {
   const getHighlightedText = () => {
-    // Handle empty textToType gracefully
     if (!textToType) {
       return <span>No text available to type.</span>;
     }
 
     return textToType.split('').map((char, index) => {
-      if (index < userInput.length) {
-        const isCorrect = userInput[index] === char;
-        return (
-          <span
-            key={index}
-            className={`${
-              isCorrect ? 'text-green-600' : 'text-red-600'
-            } font-bold`}
-          >
-            {char}
-          </span>
-        );
-      }
-      return <span key={index}>{char}</span>; // No highlight for untyped characters
+      const isTyped = index < userInput.length;
+      const isCorrect = isTyped && userInput[index] === char;
+
+      return (
+        <motion.span
+          key={index}
+          className={`font-bold ${isTyped ? (isCorrect ? 'text-green-600' : 'text-red-600') : ''}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
+        >
+          {char}
+        </motion.span>
+      );
     });
   };
 

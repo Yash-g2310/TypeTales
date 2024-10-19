@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Typography, TextField } from '@mui/material';
+import { Button, Typography, TextField, Snackbar } from '@mui/material';
 import ProgressBar from './ProgressBar';
 import HighlightedText from './HighlightedText';
+import { ToastContainer, toast } from 'react-toastify';
 
-const CHUNK_SIZE = 50; // Adjust chunk size based on preference
+const CHUNK_SIZE = 50;
 
 const TypingArea = ({ text, onReset }) => {
   const [userInput, setUserInput] = useState('');
@@ -13,27 +14,24 @@ const TypingArea = ({ text, onReset }) => {
   const [wpm, setWpm] = useState(0);
   const [chunks, setChunks] = useState([]);
 
-  // Split text into chunks when the text is passed in
   useEffect(() => {
     setChunks(text.match(new RegExp(`.{1,${CHUNK_SIZE}}`, 'g')) || []);
-    setCurrentChunkIndex(0); // Reset chunk index
-    setUserInput(''); // Reset user input
-    setCompleted(false); // Reset completion status
+    setCurrentChunkIndex(0);
+    setUserInput('');
+    setCompleted(false);
   }, [text]);
 
-  // Start timer when the user starts typing
   useEffect(() => {
     if (userInput.length > 0 && !startTime) {
       setStartTime(Date.now());
     }
   }, [userInput, startTime]);
 
-  // Calculate WPM every second
   useEffect(() => {
     if (startTime) {
       const timer = setInterval(() => {
-        const elapsedTime = (Date.now() - startTime) / 60000; // convert ms to minutes
-        setWpm(Math.round((userInput.length / 5) / elapsedTime)); // Approx. 5 chars = 1 word
+        const elapsedTime = (Date.now() - startTime) / 60000;
+        setWpm(Math.round((userInput.length / 5) / elapsedTime));
       }, 1000);
       return () => clearInterval(timer);
     }
@@ -43,13 +41,13 @@ const TypingArea = ({ text, onReset }) => {
     const input = e.target.value;
     setUserInput(input);
 
-    // Check if the current input matches the current chunk
     if (input === chunks[currentChunkIndex]) {
       if (currentChunkIndex < chunks.length - 1) {
-        setCurrentChunkIndex(currentChunkIndex + 1); // Move to next chunk
-        setUserInput(''); // Reset user input for the next chunk
+        setCurrentChunkIndex(currentChunkIndex + 1);
+        setUserInput('');
       } else {
-        setCompleted(true); // Mark as completed if it's the last chunk
+        setCompleted(true);
+        toast.success('Congrats! You’ve completed the text.', { position: "top-center" });
       }
     }
   };
@@ -57,7 +55,9 @@ const TypingArea = ({ text, onReset }) => {
   return (
     <div className="space-y-4">
       <Typography variant="h6">Type the following text chunk:</Typography>
-      <Typography className="p-2 bg-gray-100 rounded">{chunks[currentChunkIndex]}</Typography>
+      <Typography className="p-2 bg-gray-100 rounded border border-gray-300">
+        {chunks[currentChunkIndex]}
+      </Typography>
       <TextField
         label="Start typing here"
         multiline
@@ -66,6 +66,7 @@ const TypingArea = ({ text, onReset }) => {
         onChange={handleInputChange}
         fullWidth
         variant="outlined"
+        placeholder="Type here..."
       />
       <div className="mt-4">
         <ProgressBar userInput={userInput} textToType={chunks[currentChunkIndex]} />
@@ -84,6 +85,7 @@ const TypingArea = ({ text, onReset }) => {
       <Button variant="contained" color="secondary" onClick={onReset}>
         Reset and Upload Again
       </Button>
+      <ToastContainer />
     </div>
   );
 };
