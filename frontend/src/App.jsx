@@ -1,39 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import AuthForm from './pages/AuthForm';
 import Navbar from './components/Navbar';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Leaderboard from './pages/Leaderboard';
+import UploadSection from './components/UploadSection';
+import TypingArea from './components/TypingArea';
+import { useAuth } from './context/AuthContext';
 
 const App = () => {
   const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const [textToType, setTextToType] = useState('');
+
+  const handleTextUpload = (text) => {
+    setTextToType(text);
+  };
+
+  const handleReset = () => {
+    setTextToType('');
+  };
+
   return (
     <>
-    <Router>
-      {isLoggedIn && <Navbar/>}  
+      {isLoggedIn && <Navbar navigate={navigate} />}
       <Routes>
-        {isLoggedIn?(
+        {isLoggedIn ? (
           <>
-          <Route path='/' element={<Home/>}/>
-          <Route path='/profile' element={<Profile/>}/>
-          <Route path='/leaderboard' element={<Leaderboard/>}/>
+            <Route path="/" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route
+              path="/typing"
+              element={
+                textToType ? (
+                  <TypingArea text={textToType} onReset={handleReset} />
+                ) : (
+                  <UploadSection onTextUpload={handleTextUpload} />
+                )
+              }
+            />
           </>
-        ):(
-          <Route path='/login' element={<div className="h-screen flex justify-center items-center ">
-            <></>
-            <AuthForm />
-          </div>}/>
+        ) : (
+          <Route path="/login" element={<AuthForm />} />
         )}
-      </Routes>   
-    </Router>
-    {/* <div >
-      <Navbar />
-      <div className="h-screen flex justify-center items-center ">
-        <AuthForm />
-      </div> 
-    </div> */}
+      </Routes>
     </>
   );
 };
