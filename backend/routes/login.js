@@ -12,6 +12,21 @@ router.use(logger);
 
 router.use(express.json());
 
+
+
+
+
+
+// ENDPOINTS
+// FOR REGISTRATION : https://localhost:3000/api/registration
+// FOR LOGIN : https://localhost:3000/api/login
+
+
+
+
+
+
+
 // Registration route
 router.post('/registration', async (req, res) => {
     const { username, email, password } = req.body;
