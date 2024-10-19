@@ -1,35 +1,53 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import AuthForm from './pages/AuthForm';
+import Navbar from './components/Navbar';
+import Home from './pages/Home';
+import Profile from './pages/Profile';
+import Leaderboard from './pages/Leaderboard';
+import UploadSection from './components/UploadSection';
+import TypingArea from './components/TypingArea';
+import { useAuth } from './context/AuthContext';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+  const { isLoggedIn } = useAuth();
+  const navigate = useNavigate();
+  const [textToType, setTextToType] = useState('');
+
+  const handleTextUpload = (text) => {
+    setTextToType(text);
+  };
+
+  const handleReset = () => {
+    setTextToType('');
+  };
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      {isLoggedIn && <Navbar navigate={navigate} />}
+      <Routes>
+        {isLoggedIn ? (
+          <>
+            <Route path="/" element={<Home />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/leaderboard" element={<Leaderboard />} />
+            <Route
+              path="/typing"
+              element={
+                textToType ? (
+                  <TypingArea text={textToType} onReset={handleReset} />
+                ) : (
+                  <UploadSection onTextUpload={handleTextUpload} />
+                )
+              }
+            />
+          </>
+        ) : (
+          <Route path="/login" element={<AuthForm />} />
+        )}
+      </Routes>
     </>
-  )
-}
+  );
+};
 
-export default App
+export default App;
