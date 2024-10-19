@@ -9,23 +9,37 @@ const router = express.Router();
 // Apply logger middleware
 router.use(logger);
 
+// Middleware to parse JSON request bodies
+router.use(express.json());
+
 // Registration route
 router.post('/registration', async (req, res) => {
     const { username, email, password } = req.body;
+
+    // Validate input
+    if (!username || !email || !password) {
+        return res.status(400).json({ error: 'All fields are required.' });
+    }
+
     try {
+        // Check if email already exists
         const existingUser = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (existingUser.rows.length > 0) {
-            return res.status(400).json({ error: 'Email already in use' });
+            return res.status(400).json({ error: 'Email already in use.' });
         }
+
+        // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await pool.query(
             'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *',
             [username, email, hashedPassword]
         );
-        res.status(201).json(newUser.rows[0]);
+
+        // Respond with user data (excluding password)
+        return res.status(201).json(`Login Successful User ID: ${newUser.rows[0].id}`);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Error during registration ', error);
+        res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
@@ -33,29 +47,39 @@ router.post('/registration', async (req, res) => {
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
+    // Validate input
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Email and password are required.' });
+    }
+
     try {
+        // Retrieve user from the database
         const userResult = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         const user = userResult.rows[0];
 
+        // Check if user exists
         if (!user) {
             return res.status(400).json({ error: 'Invalid email or password.' });
         }
 
+        // Compare password with hashed password
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
             return res.status(400).json({ error: 'Invalid email or password.' });
         }
 
+        // Generate JWT token
         const token = jwt.sign(
             { id: user.id, email: user.email },
-            'my_jwt_secret',
+            process.env.JWT_SECRET || 'my_jwt_secret', // Use environment variable for secret
             { expiresIn: '1h' }
         );
 
-        res.json({ token });
+        // Respond with the token
+        res.json({ message: `Login Successful User ID: ${user.id}`, token });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ error: 'Internal server error.' });
     }
 });
 
