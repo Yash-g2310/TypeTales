@@ -8,12 +8,16 @@ import {
   Tabs,
   Tab,
   Box,
+  CircularProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
+import { useSnackbar } from 'notistack';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function FormContent({ isLogin, handleSubmit }) {
+const FormContent = ({ isLogin, handleSubmit, loading }) => {
   const [formValues, setFormValues] = useState({
     username: '',
     email: '',
@@ -89,25 +93,43 @@ function FormContent({ isLogin, handleSubmit }) {
         error={!!formErrors.password}
         helperText={formErrors.password}
       />
-      <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-        {isLogin ? 'Login' : 'Signup'}
+      <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }} disabled={loading}>
+        {loading ? <CircularProgress size={24} /> : isLogin ? 'Login' : 'Signup'}
       </Button>
     </Box>
   );
-}
+};
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
+  const { enqueueSnackbar } = useSnackbar();
+  const [loading, setLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('info');
 
-  const handleSubmit = (formValues) => {
-    if (isLogin) {
-      // Call the login API here and on success:
-      login();
-    } else {
-      // Call the signup API here and on success:
-      login();
+  const handleSubmit = async (formValues) => {
+    setLoading(true);
+    try {
+      if (isLogin) {
+        await login(formValues.email, formValues.password);
+        enqueueSnackbar('Login successful!', { variant: 'success' });
+      } else {
+        await signup(formValues.username, formValues.email, formValues.password);
+        enqueueSnackbar('Signup successful!', { variant: 'success' });
+      }
+    } catch (error) {
+      setSnackbarMessage(error.message || 'An error occurred. Please try again.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
   };
 
   return (
@@ -125,7 +147,17 @@ const AuthForm = () => {
           <Tab label="Login" />
           <Tab label="Signup" />
         </Tabs>
-        <FormContent isLogin={isLogin} handleSubmit={handleSubmit} />
+        <FormContent isLogin={isLogin} handleSubmit={handleSubmit} loading={loading} />
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleSnackbarClose}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        >
+          <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Paper>
     </Container>
   );

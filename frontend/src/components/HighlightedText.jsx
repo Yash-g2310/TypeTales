@@ -1,7 +1,12 @@
 import React from 'react';
 
-const HighlightedText = ({ textToType, userInput }) => {
+const HighlightedText = ({ textToType = '', userInput = '' }) => {
   const getHighlightedText = () => {
+    // Handle empty textToType gracefully
+    if (!textToType) {
+      return <span>No text available to type.</span>;
+    }
+
     return textToType.split('').map((char, index) => {
       if (index < userInput.length) {
         const isCorrect = userInput[index] === char;
