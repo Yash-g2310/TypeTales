@@ -1,10 +1,10 @@
 const express = require('express');
 const pool = require('./db');
-const loginRouter = require('./routes/login'); // Adjust path if needed
+const loginRouter = require('./routes/login'); 
 
 const app = express();
-app.use(express.json()); // For parsing application/json
-app.use('/api', loginRouter); // Use the login router
+app.use(express.json()); 
+app.use('/api', loginRouter); 
 
 
 
